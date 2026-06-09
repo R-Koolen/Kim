@@ -63,7 +63,7 @@ export function HomeScreen({ state, me, active, lastFound, isHider, isGuest, onF
         <div className="card-head"><h3>Nieuwste hint</h3><span className="link" onClick={(e) => {e.stopPropagation();go("hints");}}>Alle hints →</span></div>
         {lastHint ?
         <div className="hint-bubble">“{lastHint.text}”<span className="muted small">Hint {unlocked} · vrijgekomen {fmtDate(unlockDate(active.hiddenAt, unlocked))}</span></div> :
-        <p className="muted">De eerste hint komt vrij na 1 maand. Nog even puur op je speurneus vertrouwen. 🕵️</p>}
+        <p className="muted">De eerste hint komt vrij na 1 maand. Nog even puur op je speurnosso vertrouwen. 🕵️</p>}
       </div>
 
       <button className="card" onClick={() => onOpenRound(active)}>
@@ -87,7 +87,7 @@ export function MapScreen({ active, lastFound, isHider }) {
   if (isHider && active.hiddenPin) pins.push({ ...active.hiddenPin, type: "hidden", label: "Geheime plek" });
   return (
     <div className="screen">
-      <div className="screen-title"><h2>Plattegrond</h2><p className="muted">2de verdieping</p></div>
+      <div className="screen-title"><h2>Plattegrond</h2></div>
       <div className="card map-card">
         <ZoomPan className="map-zoom" initialScale={1.5} maxScale={4}><FloorPlan pins={pins} className="fp-full" /></ZoomPan>
       </div>
@@ -179,7 +179,7 @@ export function LeaderboardScreen({ state }) {
   const lb = leaderboard(state.rounds, state.players);
   return (
     <div className="screen">
-      <div className="screen-title"><h2>Ranglijst</h2><p className="muted">Roem voor het hele huis</p></div>
+      <div className="screen-title"><h2>Ranglijst</h2><p className="muted">Beste LPD'er</p></div>
       <div className="hl-cards">
         <div className="card hl"><span className="hl-emoji">🏆</span><b>{lb.topFinder ? lb.topFinder[0] : "—"}</b><span className="muted small">meeste vondsten ({lb.topFinder ? lb.topFinder[1] : 0})</span></div>
         <div className="card hl"><span className="hl-emoji">⏳</span><b>{lb.longest ? lb.longest.name : "—"}</b><span className="muted small">langst verstopt ({lb.longest ? durationText(lb.longest.dur) : "—"})</span></div>

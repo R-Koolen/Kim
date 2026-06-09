@@ -22,3 +22,9 @@ COPY --from=build --chown=kim:kim /app/dist /usr/share/nginx/html
 
 USER kim
 EXPOSE 8080
+
+# Bypass nginx:alpine's entrypoint script — it tries to write to
+# /etc/nginx/conf.d/default.conf at startup, which fails with read_only: true.
+# Our nginx.conf is already complete; nginx needs no entrypoint setup.
+ENTRYPOINT []
+CMD ["nginx", "-g", "daemon off;"]

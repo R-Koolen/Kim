@@ -4,6 +4,11 @@
 import React from "react";
 import { KIM_VB, KIM_ROOMS } from "./kim-rooms.js";
 
+/* ---------- identity ---------- */
+export const GUEST = "__gast__";              // reserved sentinel for observer mode
+export const isGuest = (me) => me === GUEST;
+export const ADMIN = "Robin";                 // honor-system admin (client-side gate)
+
 const MND = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
 const MND_L = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"];
 const DAY = 86400000;

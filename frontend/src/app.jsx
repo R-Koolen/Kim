@@ -8,7 +8,7 @@ import ReactDOM from "react-dom/client";
 import "./styles.css";
 import { KimStore } from "./kim-store.js";
 import { SEED } from "./seed.js";
-import { Avatar, fireConfetti } from "./kim-helpers.jsx";
+import { Avatar, fireConfetti, GUEST, isGuest, ADMIN } from "./kim-helpers.jsx";
 import { IdentitySheet, FoundFlow, HiderPanel, RoundDetailSheet } from "./kim-flows.jsx";
 import { HomeScreen, MapScreen, HintsScreen, HistoryScreen, LeaderboardScreen } from "./kim-screens.jsx";
 
@@ -41,11 +41,12 @@ function App() {
 
   const active = state.rounds.find((r) => !r.foundAt) || state.rounds[state.rounds.length - 1];
   const lastFound = KimStore.lastFoundPin();
+  const guest = isGuest(me);
   const isHider = !!(me && active && me === active.hiderName);
   const detailRound = detailId ? state.rounds.find((r) => r.id === detailId) : null;
 
   function pickIdentity(name) { KimStore.setUser(name).then(() => { setMe(name); setIdOpen(false); }); }
-  function startFound() { if (!me) { setIdOpen(true); return; } setFoundOpen(true); }
+  function startFound() { if (guest) return; if (!me) { setIdOpen(true); return; } setFoundOpen(true); }
   function completeFound(payload) {
     KimStore.foundAndRehide(payload).then(() => {
       setFoundOpen(false); setTab("home");
@@ -60,7 +61,7 @@ function App() {
       case "hints": return <HintsScreen active={active} />;
       case "history": return <HistoryScreen state={state} onOpenRound={(r) => setDetailId(r.id)} />;
       case "rank": return <LeaderboardScreen state={state} />;
-      default: return <HomeScreen state={state} me={me} active={active} lastFound={lastFound} isHider={isHider}
+      default: return <HomeScreen state={state} me={me} active={active} lastFound={lastFound} isHider={isHider} isGuest={guest}
         onFound={startFound} onOpenRound={(r) => setDetailId(r.id)} onOpenHider={() => setHiderOpen(true)} go={go} />;
     }
   }
@@ -71,7 +72,7 @@ function App() {
         <header className="topbar">
           <h1>Waar is Kim?</h1>
           <button className="idchip" onClick={() => setIdOpen(true)}>
-            {me ? <React.Fragment><Avatar name={me} size={26} />{me}</React.Fragment> : "Kies je naam"}
+            {me ? (guest ? <React.Fragment><span style={{ fontSize: 20 }}>👀</span>Gast</React.Fragment> : <React.Fragment><Avatar name={me} size={26} />{me}</React.Fragment>) : "Kies je naam"}
           </button>
         </header>
         <div className="scroll" key={tab}>{renderScreen()}</div>
@@ -89,7 +90,9 @@ function App() {
       <HiderPanel open={hiderOpen} active={active} onClose={() => setHiderOpen(false)}
         onMovePin={(p) => KimStore.moveHiddenPin(p)} onSaveHints={(h) => KimStore.updateHints(h)} />
       <RoundDetailSheet open={!!detailRound} round={detailRound} me={me} onClose={() => setDetailId(null)}
-        onComment={(rid, text) => KimStore.addComment(rid, { name: me, text })} onNeedId={() => setIdOpen(true)} />
+        onComment={(rid, text) => KimStore.addComment(rid, { name: me, text })} onNeedId={() => setIdOpen(true)}
+        canComment={!!me && !guest} canDelete={me === ADMIN}
+        onDelete={(rid) => KimStore.removeRound(rid).then(() => setDetailId(null))} />
     </React.Fragment>
   );
 }

@@ -114,5 +114,16 @@ export const KimStore = {
     return _save(next);
   },
 
+  /* admin: remove a finished round from history (also drops it from the
+     leaderboard). The live round is never deletable — that would break the
+     single-active-round invariant the UI relies on. */
+  removeRound(roundId) {
+    const next = clone(state);
+    const r = next.rounds.find((x) => x.id === roundId);
+    if (!r || !r.foundAt) return Promise.resolve(state);
+    next.rounds = next.rounds.filter((x) => x.id !== roundId);
+    return _save(next);
+  },
+
   resetGame(seed) { return _save(clone(seed)); },
 };

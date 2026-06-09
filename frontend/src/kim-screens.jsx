@@ -10,7 +10,7 @@ import {
 } from "./kim-helpers.jsx";
 
 /* ---------- HOME / STATUS ---------- */
-export function HomeScreen({ state, me, active, lastFound, isHider, onFound, onOpenRound, onOpenHider, go }) {
+export function HomeScreen({ state, me, active, lastFound, isHider, isGuest, onFound, onOpenRound, onOpenHider, go }) {
   const days = daysBetween(active.hiddenAt, Date.now());
   const unlocked = unlockedCount(active.hiddenAt);
   const lastHint = unlocked > 0 ? active.hints[unlocked - 1] : null;
@@ -37,7 +37,13 @@ export function HomeScreen({ state, me, active, lastFound, isHider, onFound, onO
         <button className="stat" onClick={() => onOpenRound(active)}><b>{cmts.length}</b><span>reacties</span></button>
       </div>
 
-      {isHider ?
+      {isGuest ?
+      <div className="card">
+          <div className="hider-top"><span className="hider-badge">👀 Je kijkt mee als gast</span></div>
+          <p className="muted">Volg het spel mee — zoeken en verstoppen kan niet als gast. Kies je naam bovenin om mee te doen.</p>
+        </div> :
+
+      isHider ?
       <div className="card hider-card">
           <div className="hider-top"><span className="hider-badge">🤫 Jij hebt Kim verstopt</span></div>
           <p className="muted">Alleen jij weet waar Kim ligt. Verplaats hem of pas de hints aan.</p>

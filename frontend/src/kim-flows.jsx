@@ -5,7 +5,7 @@
 import React from "react";
 import { FloorPlan } from "./kim-map.jsx";
 import { PhotoSlot } from "./photo-slot.jsx";
-import { Sheet, Button, Avatar, roomLabel, fmtDateLong, durationText, timeAgo } from "./kim-helpers.jsx";
+import { Sheet, Button, Avatar, roomLabel, fmtDateLong, durationText, timeAgo, GUEST, isGuest } from "./kim-helpers.jsx";
 
 /* ---------- identity ---------- */
 export function IdentitySheet({ open, players, me, onPick, onClose }) {
@@ -25,6 +25,10 @@ export function IdentitySheet({ open, players, me, onPick, onClose }) {
         <input className="field" placeholder="Andere naam…" value={other} onChange={(e) => setOther(e.target.value)} onKeyDown={(e) => e.key === "Enter" && other.trim() && onPick(other.trim())} />
         <Button variant="ghost" disabled={!other.trim()} onClick={() => other.trim() && onPick(other.trim())}>Ga</Button>
       </div>
+      <button className={"id-chip id-guest" + (isGuest(me) ? " is-me" : "")} style={{ marginTop: 10, width: "100%", flexDirection: "row", gap: 10, justifyContent: "center" }} onClick={() => onPick(GUEST)}>
+        <span style={{ fontSize: 26 }}>👀</span>
+        <span style={{ textAlign: "left" }}>Kijk mee als gast<br /><small className="muted">alleen meekijken — niet zoeken of verstoppen</small></span>
+      </button>
     </Sheet>
   );
 }
@@ -182,7 +186,9 @@ export function CommentBar({ onSend, me, onNeedId }) {
 }
 
 /* ---------- round detail ---------- */
-export function RoundDetailSheet({ open, round, me, onClose, onComment, onNeedId }) {
+export function RoundDetailSheet({ open, round, me, onClose, onComment, onNeedId, canComment = true, canDelete = false, onDelete }) {
+  const [confirmDel, setConfirmDel] = React.useState(false);
+  React.useEffect(() => { setConfirmDel(false); }, [round && round.id, open]);
   if (!round) return null;
   const active = !round.foundAt;
   const pins = [];
@@ -214,7 +220,25 @@ export function RoundDetailSheet({ open, round, me, onClose, onComment, onNeedId
       )}
       <h4 className="rd-sub">Reacties</h4>
       <CommentFeed comments={round.comments} />
-      <CommentBar me={me} onNeedId={onNeedId} onSend={(t) => onComment(round.id, t)} />
+      {canComment
+        ? <CommentBar me={me} onNeedId={onNeedId} onSend={(t) => onComment(round.id, t)} />
+        : <p className="muted" style={{ textAlign: "center", padding: "8px 0" }}>Gasten kunnen niet reageren.</p>}
+
+      {canDelete && !active && (
+        <div className="rd-danger" style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
+          {confirmDel ? (
+            <React.Fragment>
+              <p className="muted" style={{ marginTop: 0 }}>Ronde definitief verwijderen?</p>
+              <div className="row-2" style={{ display: "flex", gap: 8 }}>
+                <Button variant="ghost" full style={{ color: "var(--accent)" }} onClick={() => onDelete && onDelete(round.id)}>Verwijder</Button>
+                <Button variant="ghost" full onClick={() => setConfirmDel(false)}>Annuleer</Button>
+              </div>
+            </React.Fragment>
+          ) : (
+            <Button variant="ghost" full style={{ color: "var(--accent)" }} onClick={() => setConfirmDel(true)}>🗑 Verwijder ronde</Button>
+          )}
+        </div>
+      )}
     </Sheet>
   );
 }

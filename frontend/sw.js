@@ -2,12 +2,13 @@
 // Strategy: network-first for everything (so a redeploy is picked up the moment
 // you're online), falling back to cache when offline. The /api/* routes
 // (state + SSE stream) are never intercepted — they always hit the network.
-const CACHE = "kim-v1";
+const CACHE = "kim-v2";
+// Only the stable shell is precached. The JS/CSS bundles are content-hashed
+// (app-<hash>.js), so their exact names aren't known here — the network-first
+// fetch handler caches them at runtime instead.
 const PRECACHE = [
   "/",
   "/index.html",
-  "/app.js",
-  "/app.css",
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",

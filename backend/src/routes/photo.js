@@ -18,6 +18,25 @@ function photoPath(key) {
   return KEY_RE.test(key) ? join(PHOTO_DIR, `${key}.jpg`) : null;
 }
 
+// Verify actual file bytes, not just the client-declared Content-Type header.
+// A client can lie about mimetype; magic bytes cannot be faked without also
+// making the file a valid image.
+const MAGIC = {
+  "image/jpeg": [[0xff, 0xd8, 0xff]],
+  "image/png":  [[0x89, 0x50, 0x4e, 0x47]],
+  // WebP: "RIFF" at 0 + "WEBP" at 8
+  "image/webp": [[0x52, 0x49, 0x46, 0x46]],
+};
+function hasValidMagic(buffer, mimetype) {
+  const seqs = MAGIC[mimetype];
+  if (!seqs) return false;
+  if (mimetype === "image/webp") {
+    return seqs[0].every((b, i) => buffer[i] === b) &&
+      buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+  }
+  return seqs[0].every((b, i) => buffer[i] === b);
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024, files: 1 },
@@ -47,6 +66,8 @@ photoRouter.post("/photo/:key", (req, res) => {
   upload.single("photo")(req, res, (err) => {
     if (err) return res.status(400).json({ error: "upload rejected" });
     if (!req.file) return res.status(400).json({ error: "no photo" });
+    if (!hasValidMagic(req.file.buffer, req.file.mimetype))
+      return res.status(400).json({ error: "invalid image" });
     writeFileSync(filePath, req.file.buffer);
     res.json({ ok: true, url: `/api/photo/${req.params.key}` });
   });

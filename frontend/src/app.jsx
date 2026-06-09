@@ -15,7 +15,7 @@ import { HomeScreen, MapScreen, HintsScreen, HistoryScreen, LeaderboardScreen } 
 const { useState, useEffect } = React;
 
 const TABS = [
-  { id: "home", ic: "🏠", label: "Home" },
+  { id: "home", ic: "🏠", label: "LPD" },
   { id: "map", ic: "🗺️", label: "Kaart" },
   { id: "hints", ic: "💡", label: "Hints" },
   { id: "history", ic: "🕘", label: "Historie" },

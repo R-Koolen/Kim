@@ -2,6 +2,7 @@
 // stream one JSON blob" (+ photos, §4D). Always run behind the Caddy reverse
 // proxy on kim.lpd50.uk; never expose this port directly to the internet.
 import express from "express";
+import helmet from "helmet";
 import { stateRouter } from "./routes/state.js";
 import { photoRouter, bootstrapSeedPhoto } from "./routes/photo.js";
 import { cors, rateLimit, quietLogger } from "./security.js";
@@ -12,6 +13,7 @@ const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", 1); // safe: only reachable through the Caddy reverse proxy
 
+app.use(helmet({ crossOriginResourcePolicy: { policy: "same-site" } }));
 app.use(quietLogger);
 app.use(cors);
 app.use(express.json({ limit: "256kb" }));

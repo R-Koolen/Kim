@@ -1,0 +1,6 @@
+{
+  // Live Server serves from this folder so the built dist/index.html can load
+  // its absolute /app.js and /app.css bundle paths. Open frontend/dist/index.html
+  // and right-click -> "Open with Live Server".
+  "liveServer.settings.root": "/frontend/dist"
+}

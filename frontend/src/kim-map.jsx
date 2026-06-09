@@ -7,33 +7,63 @@ import { KIM_VB as VB, KIM_ROOMS as ROOMS } from "./kim-rooms.js";
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
-/* ---- furniture: simple shapes only, drawn in a muted "ink" line ---------- */
+/* ---- furniture ------------------------------------------------------------
+ * Drawn line-only in a muted "ink" — no color. Each piece type gets a small
+ * distinguishing detail (in the spirit of the bed's pillow line) so it reads as
+ * what it is without needing color. Pieces come from room-relative `furniture`
+ * data in kim-rooms.js; wet rooms / balcony / shafts stay procedural below.
+ * -------------------------------------------------------------------------- */
+function Piece({ r, p }) {
+  const ink = "var(--map-ink)";
+  const fill = "var(--map-furn)";
+  const x = r.x + p.x, y = r.y + p.y, w = p.w, h = p.h;
+  const els = [];
+  if (p.t === "bed") {
+    // mattress + pillow line
+    els.push(<rect key="b" x={x} y={y} width={w} height={h} rx="8" fill={fill} stroke={ink} strokeWidth="2" />);
+    els.push(<rect key="p" x={x + 8} y={y + 8} width={w - 16} height={Math.min(18, h - 16)} rx="5" fill="none" stroke={ink} strokeWidth="2" />);
+  } else if (p.t === "cabinet") {
+    // cupboard: door-split line + two handle dots along the split
+    const vertical = h >= w;
+    els.push(<rect key="c" x={x} y={y} width={w} height={h} rx="3" fill={fill} stroke={ink} strokeWidth="2" />);
+    if (vertical) {
+      els.push(<line key="s" x1={x} y1={y + h / 2} x2={x + w} y2={y + h / 2} stroke={ink} strokeWidth="1.4" />);
+      els.push(<circle key="h1" cx={x + w / 2} cy={y + h / 2 - 8} r="2" fill={ink} />);
+      els.push(<circle key="h2" cx={x + w / 2} cy={y + h / 2 + 8} r="2" fill={ink} />);
+    } else {
+      els.push(<line key="s" x1={x + w / 2} y1={y} x2={x + w / 2} y2={y + h} stroke={ink} strokeWidth="1.4" />);
+      els.push(<circle key="h1" cx={x + w / 2 - 8} cy={y + h / 2} r="2" fill={ink} />);
+      els.push(<circle key="h2" cx={x + w / 2 + 8} cy={y + h / 2} r="2" fill={ink} />);
+    }
+  } else if (p.t === "desk") {
+    // desk slab + drawer line + a small chair tucked under
+    els.push(<rect key="d" x={x} y={y} width={w} height={h} rx="3" fill={fill} stroke={ink} strokeWidth="2" />);
+    els.push(<line key="dr" x1={x + 4} y1={y + h - 6} x2={x + w - 4} y2={y + h - 6} stroke={ink} strokeWidth="1.4" />);
+    els.push(<rect key="ch" x={x + w / 2 - 11} y={y + h + 4} width={22} height={16} rx="4" fill={fill} stroke={ink} strokeWidth="1.6" />);
+  } else if (p.t === "sofa") {
+    // couch: seat + backrest line + two armrests
+    els.push(<rect key="s" x={x} y={y} width={w} height={h} rx="12" fill={fill} stroke={ink} strokeWidth="2" />);
+    els.push(<line key="bk" x1={x + 10} y1={y + h - 16} x2={x + w - 10} y2={y + h - 16} stroke={ink} strokeWidth="1.6" />);
+    els.push(<rect key="a1" x={x} y={y + 8} width={10} height={h - 8} rx="5" fill="none" stroke={ink} strokeWidth="1.4" />);
+    els.push(<rect key="a2" x={x + w - 10} y={y + 8} width={10} height={h - 8} rx="5" fill="none" stroke={ink} strokeWidth="1.4" />);
+  } else if (p.t === "counter") {
+    // kitchen counter strip with hobs
+    els.push(<rect key="k" x={x} y={y} width={w} height={h} rx="6" fill={fill} stroke={ink} strokeWidth="2" />);
+    for (let i = 0; i < 4; i++)
+      els.push(<circle key={"hob" + i} cx={x + 26 + i * 22} cy={y + h / 2} r="6" fill="none" stroke={ink} strokeWidth="1.6" />);
+    els.push(<text key="kk" x={x + w - 10} y={y + h / 2 + 4} textAnchor="end" className="map-sub">keuken</text>);
+  }
+  return <g>{els}</g>;
+}
+
 function Furniture({ r }) {
   const ink = "var(--map-ink)";
   const fill = "var(--map-furn)";
+  // Data-driven rooms (bedrooms + living room) carry their own layout.
+  if (r.furniture) return <g>{r.furniture.map((p, i) => <Piece key={i} r={r} p={p} />)}</g>;
   const els = [];
   const k = r.kind;
-  if (k === "bed") {
-    // bed against the far wall, headboard varies a little by room
-    const bw = 96, bh = 60;
-    const bx = r.x + r.w - bw - 16;
-    const by = r.y + 18;
-    els.push(<rect key="bd" x={bx} y={by} width={bw} height={bh} rx="8" fill={fill} stroke={ink} strokeWidth="2" />);
-    els.push(<rect key="pl" x={bx + 8} y={by + 8} width={bw - 16} height={18} rx="5" fill="none" stroke={ink} strokeWidth="2" />);
-    // desk
-    els.push(<rect key="dk" x={r.x + 14} y={r.y + r.h - 40} width={70} height={24} rx="4" fill={fill} stroke={ink} strokeWidth="2" />);
-  } else if (k === "living") {
-    // kitchen counter strip (top) with hobs
-    els.push(<rect key="kc" x={r.x + 14} y={r.y + 12} width={r.w - 28} height={36} rx="6" fill={fill} stroke={ink} strokeWidth="2" />);
-    for (let i = 0; i < 4; i++)
-      els.push(<circle key={"hob" + i} cx={r.x + 40 + i * 22} cy={r.y + 30} r="6" fill="none" stroke={ink} strokeWidth="1.6" />);
-    els.push(<text key="kk" x={r.x + r.w - 24} y={r.y + 36} textAnchor="end" className="map-sub">keuken</text>);
-    // couch
-    els.push(<rect key="cf" x={r.x + 22} y={r.y + r.h - 78} width={130} height={48} rx="12" fill={fill} stroke={ink} strokeWidth="2" />);
-    els.push(<line key="cf2" x1={r.x + 22} y1={r.y + r.h - 56} x2={r.x + 152} y2={r.y + r.h - 56} stroke={ink} strokeWidth="1.6" />);
-    // table
-    els.push(<circle key="tb" x={0} cx={r.x + 250} cy={r.y + r.h - 64} r="34" fill={fill} stroke={ink} strokeWidth="2" />);
-  } else if (k === "bath") {
+  if (k === "bath") {
     els.push(<rect key="tub" x={r.x + 12} y={r.y + 12} width={42} height={r.h - 24} rx="10" fill={fill} stroke={ink} strokeWidth="2" />);
     els.push(<rect key="sk" x={r.x + r.w - 40} y={r.y + 14} width={28} height={22} rx="5" fill={fill} stroke={ink} strokeWidth="2" />);
   } else if (k === "wc") {

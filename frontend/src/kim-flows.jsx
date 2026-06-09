@@ -9,7 +9,6 @@ import { Sheet, Button, Avatar, roomLabel, fmtDateLong, durationText, timeAgo, G
 
 /* ---------- identity ---------- */
 export function IdentitySheet({ open, players, me, onPick, onClose }) {
-  const [other, setOther] = React.useState("");
   return (
     <Sheet open={open} onClose={onClose} dismissable={!!me} title="Wie ben jij?">
       <p className="muted" style={{ marginTop: 2 }}>Geen wachtwoord nodig — kies je naam zodat we weten wie wat doet.</p>
@@ -20,10 +19,6 @@ export function IdentitySheet({ open, players, me, onPick, onClose }) {
             <span>{p}</span>
           </button>
         ))}
-      </div>
-      <div className="id-other">
-        <input className="field" placeholder="Andere naam…" value={other} onChange={(e) => setOther(e.target.value)} onKeyDown={(e) => e.key === "Enter" && other.trim() && onPick(other.trim())} />
-        <Button variant="ghost" disabled={!other.trim()} onClick={() => other.trim() && onPick(other.trim())}>Ga</Button>
       </div>
       <button className={"id-chip id-guest" + (isGuest(me) ? " is-me" : "")} style={{ marginTop: 10, width: "100%", flexDirection: "row", gap: 10, justifyContent: "center" }} onClick={() => onPick(GUEST)}>
         <span style={{ fontSize: 26 }}>👀</span>

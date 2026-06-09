@@ -104,3 +104,9 @@ function Boot() {
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<Boot />);
+
+// Register the service worker (install/A2HS + offline shell). Done from the
+// bundle rather than an inline <script> so it isn't blocked by the CSP.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}

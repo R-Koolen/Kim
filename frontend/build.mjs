@@ -19,3 +19,6 @@ await build({
 });
 
 cpSync("index.html", "dist/index.html");
+cpSync("manifest.webmanifest", "dist/manifest.webmanifest");
+cpSync("sw.js", "dist/sw.js");
+cpSync("icons", "dist/icons", { recursive: true });

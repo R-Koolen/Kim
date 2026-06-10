@@ -21,7 +21,7 @@ export function HomeScreen({ state, me, active, lastFound, isHider, isGuest, onF
         <div className="hero-poster" style={{ height: "250px", width: "200px" }}>
           <div className="poster-tape" />
           <span className="poster-kicker">★ VERMIST ★</span>
-          <PhotoSlot id="kim-photo" shape="rect" radius={0} fit="cover" placeholder="Foto van Kim" />
+          <PhotoSlot id="kim-photo" shape="rect" radius={0} fit="cover" readOnly placeholder="Foto van Kim" />
           <h1 className="poster-name">KIM</h1>
         </div>
         <div className="hero-count">

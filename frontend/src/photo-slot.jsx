@@ -92,7 +92,7 @@ export function PhotoSlot({ id, shape = "rounded", radius = 12, fit = "cover", p
           style={{ objectFit: fit }} onError={() => setHasPhoto(false)} />
       ) : (
         <div className="photo-slot-empty">
-          <span>{readOnly ? "Nog geen bewijsfoto 📸" : (busy ? "Bezig met uploaden…" : placeholder)}</span>
+          <span>{busy ? "Bezig met uploaden…" : placeholder}</span>
           {!readOnly && error && <span className="photo-slot-error">{error}</span>}
         </div>
       )}

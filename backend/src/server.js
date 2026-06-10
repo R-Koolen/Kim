@@ -5,6 +5,8 @@ import express from "express";
 import helmet from "helmet";
 import { stateRouter } from "./routes/state.js";
 import { photoRouter, bootstrapSeedPhoto } from "./routes/photo.js";
+import { pushRouter } from "./routes/push.js";
+import { configurePush, startHintScheduler } from "./push.js";
 import { cors, rateLimit, quietLogger } from "./security.js";
 
 const PORT = process.env.PORT || 3000;
@@ -24,9 +26,11 @@ const writeLimiter = rateLimit({ windowMs: 60_000, max: 30 });
 app.use("/api", apiLimiter);
 app.put("/api/state", writeLimiter);
 app.post("/api/photo/:key", writeLimiter);
+app.post("/api/push/subscribe", writeLimiter);
 
 app.use("/api", stateRouter);
 app.use("/api", photoRouter);
+app.use("/api", pushRouter);
 
 app.use((req, res) => res.sendStatus(404));
 
@@ -39,5 +43,7 @@ app.use((err, req, res, next) => {
 });
 
 bootstrapSeedPhoto();
+configurePush();
+startHintScheduler();
 
 app.listen(PORT, () => console.log(`kim-backend listening on :${PORT}`));

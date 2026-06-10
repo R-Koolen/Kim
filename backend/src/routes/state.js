@@ -3,6 +3,7 @@
 import { Router } from "express";
 import { getState, setState } from "../db.js";
 import { subscribe, publish } from "../bus.js";
+import { notifyFromDiff } from "../push.js";
 
 export const stateRouter = Router();
 
@@ -29,8 +30,11 @@ stateRouter.get("/state", (req, res) => {
 
 stateRouter.put("/state", (req, res) => {
   if (!isValidDoc(req.body)) return res.status(400).json({ error: "invalid document" });
+  const prev = getState();
   const doc = setState(req.body);
   publish(doc);
+  // fire-and-forget: a push failure must never break or delay the state write
+  notifyFromDiff(prev, doc).catch((e) => console.error("push notify:", e.message));
   res.json(doc);
 });
 

@@ -8,52 +8,6 @@ import {
   Avatar, Button, daysBetween, durationText, fmtDate, leaderboard,
   roomLabel, unlockDate, unlockedCount,
 } from "./kim-helpers.jsx";
-import { pushStatus, enablePush, disablePush } from "./push.js";
-
-/* ---------- notifications opt-in (players only) ---------- */
-function NotifyCard({ me }) {
-  const [st, setSt] = React.useState(null);
-  const [busy, setBusy] = React.useState(false);
-  const [msg, setMsg] = React.useState("");
-  const refresh = () => pushStatus().then(setSt);
-  React.useEffect(() => { refresh(); }, []);
-
-  if (st && !st.supported) return null; // hide on browsers without push
-
-  async function enable() {
-    setBusy(true); setMsg("");
-    try {
-      const r = await enablePush(me);
-      if (r.ok) setMsg("Meldingen staan aan ✅");
-      else if (r.permission === "denied") setMsg("Meldingen zijn geblokkeerd in je browser-instellingen.");
-      else setMsg(r.reason || "Kon meldingen niet aanzetten.");
-    } catch (e) { setMsg("Kon meldingen niet aanzetten."); }
-    setBusy(false); refresh();
-  }
-  async function disable() { setBusy(true); setMsg(""); await disablePush(); setBusy(false); refresh(); }
-
-  const on = st && st.subscribed && st.permission === "granted";
-  const denied = st && st.permission === "denied";
-  return (
-    <div className="card">
-      <div className="card-head"><h3>🔔 Meldingen</h3></div>
-      {on ? (
-        <React.Fragment>
-          <p className="muted">Je krijgt een seintje als Kim gevonden wordt, bij nieuwe reacties en wanneer een hint vrijkomt.</p>
-          <div className="row-2"><Button variant="ghost" full onClick={disable} disabled={busy}>Meldingen uitzetten</Button></div>
-        </React.Fragment>
-      ) : denied ? (
-        <p className="muted">Meldingen zijn geblokkeerd. Zet ze aan via de site-instellingen van je browser.</p>
-      ) : (
-        <React.Fragment>
-          <p className="muted">Krijg een seintje als Kim gevonden wordt, bij nieuwe reacties en wanneer een hint vrijkomt. Werkt het best als je de app op je beginscherm hebt gezet.</p>
-          <div className="row-2"><Button variant="soft" full onClick={enable} disabled={busy}>{busy ? "Bezig…" : "Zet meldingen aan"}</Button></div>
-        </React.Fragment>
-      )}
-      {msg && <p className="muted small" style={{ marginTop: 6 }}>{msg}</p>}
-    </div>
-  );
-}
 
 /* ---------- HOME / STATUS ---------- */
 export function HomeScreen({ state, me, active, lastFound, isHider, isGuest, onFound, onOpenRound, onOpenHider, go }) {
@@ -98,8 +52,6 @@ export function HomeScreen({ state, me, active, lastFound, isHider, isGuest, onF
 
       <Button variant="primary" size="lg" full onClick={onFound} style={{ marginTop: 4 }}>🔍 Ik heb Kim gevonden!</Button>
       }
-
-      {me && !isGuest && <NotifyCard me={me} />}
 
       <button className="card map-preview" onClick={() => go("map")}>
         <div className="card-head"><h3>Laatst gezien</h3><span className="link">Open kaart →</span></div>

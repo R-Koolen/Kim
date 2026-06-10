@@ -6,6 +6,52 @@ import React from "react";
 import { FloorPlan } from "./kim-map.jsx";
 import { PhotoSlot } from "./photo-slot.jsx";
 import { Sheet, Button, Avatar, roomLabel, fmtDateLong, durationText, timeAgo, GUEST, isGuest } from "./kim-helpers.jsx";
+import { pushStatus, enablePush, disablePush } from "./push.js";
+
+/* ---------- notifications opt-in (players only) — lives in the profile sheet ---------- */
+function NotifySection({ me }) {
+  const [st, setSt] = React.useState(null);
+  const [busy, setBusy] = React.useState(false);
+  const [msg, setMsg] = React.useState("");
+  const refresh = () => pushStatus().then(setSt);
+  React.useEffect(() => { refresh(); }, []);
+
+  if (st && !st.supported) return null; // hide on browsers without push
+
+  async function enable() {
+    setBusy(true); setMsg("");
+    try {
+      const r = await enablePush(me);
+      if (r.ok) setMsg("Meldingen staan aan ✅");
+      else if (r.permission === "denied") setMsg("Meldingen zijn geblokkeerd in je browser-instellingen.");
+      else setMsg(r.reason || "Kon meldingen niet aanzetten.");
+    } catch (e) { setMsg("Kon meldingen niet aanzetten."); }
+    setBusy(false); refresh();
+  }
+  async function disable() { setBusy(true); setMsg(""); await disablePush(); setBusy(false); refresh(); }
+
+  const on = st && st.subscribed && st.permission === "granted";
+  const denied = st && st.permission === "denied";
+  return (
+    <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
+      <h4 className="rd-sub" style={{ marginTop: 0 }}>🔔 Meldingen</h4>
+      {on ? (
+        <React.Fragment>
+          <p className="muted small">Je krijgt een seintje als Kim gevonden wordt, bij reacties en hints.</p>
+          <Button variant="ghost" full onClick={disable} disabled={busy}>Meldingen uitzetten</Button>
+        </React.Fragment>
+      ) : denied ? (
+        <p className="muted small">Meldingen zijn geblokkeerd. Zet ze aan via de site-instellingen van je browser.</p>
+      ) : (
+        <React.Fragment>
+          <p className="muted small">Krijg een seintje als Kim gevonden wordt, bij reacties en wanneer een hint vrijkomt. Werkt het best met de app op je beginscherm.</p>
+          <Button variant="soft" full onClick={enable} disabled={busy}>{busy ? "Bezig…" : "Zet meldingen aan"}</Button>
+        </React.Fragment>
+      )}
+      {msg && <p className="muted small" style={{ marginTop: 6 }}>{msg}</p>}
+    </div>
+  );
+}
 
 /* ---------- identity ---------- */
 export function IdentitySheet({ open, players, me, onPick, onClose }) {
@@ -24,6 +70,7 @@ export function IdentitySheet({ open, players, me, onPick, onClose }) {
         <span style={{ fontSize: 26 }}>👀</span>
         <span style={{ textAlign: "left" }}>Kijk mee als gast<br /><small className="muted">alleen meekijken — niet zoeken of verstoppen</small></span>
       </button>
+      {me && !isGuest(me) && <NotifySection me={me} />}
     </Sheet>
   );
 }

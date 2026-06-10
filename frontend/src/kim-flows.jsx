@@ -210,7 +210,10 @@ export function RoundDetailSheet({ open, round, me, onClose, onComment, onNeedId
       {!active && (
         <React.Fragment>
           <h4 className="rd-sub">Bewijsfoto 📸</h4>
-          <PhotoSlot id={"bewijs-" + round.id} shape="rounded" radius={14} fit="cover" placeholder="Waar zat Kim? Sleep hier de bewijsfoto" style={{ width: "100%", height: "210px", display: "block" }} />
+          {/* once the round is finished, only the founder may change the photo */}
+          <PhotoSlot id={"bewijs-" + round.id} shape="rounded" radius={14} fit="cover" readOnly={me !== round.foundByName}
+            placeholder="Waar zat Kim? Sleep hier de bewijsfoto" style={{ width: "100%", height: "210px", display: "block" }} />
+          {me !== round.foundByName && <p className="muted small" style={{ marginTop: 6 }}>Alleen {round.foundByName} kan deze foto wijzigen.</p>}
         </React.Fragment>
       )}
       <h4 className="rd-sub">Reacties</h4>

@@ -32,7 +32,7 @@ function resizeToJpeg(file, maxDim = MAX_DIM) {
 
 const RADIUS_CSS = { rect: "0", rounded: null, circle: "50%", pill: "999px" };
 
-export function PhotoSlot({ id, shape = "rounded", radius = 12, fit = "cover", placeholder = "Sleep hier een foto, of tik om te kiezen", className = "", style = {} }) {
+export function PhotoSlot({ id, shape = "rounded", radius = 12, fit = "cover", placeholder = "Sleep hier een foto, of tik om te kiezen", className = "", style = {}, readOnly = false }) {
   const [version, setVersion] = React.useState(0);
   const [hasPhoto, setHasPhoto] = React.useState(null); // null = still checking
   const [dragOver, setDragOver] = React.useState(false);
@@ -70,28 +70,30 @@ export function PhotoSlot({ id, shape = "rounded", radius = 12, fit = "cover", p
 
   return (
     <div
-      className={"photo-slot" + (dragOver ? " is-drag" : "") + (className ? " " + className : "")}
-      style={{ ...style, borderRadius: radiusCss != null ? radiusCss : style.borderRadius }}
-      onClick={() => inputRef.current && inputRef.current.click()}
-      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={(e) => {
+      className={"photo-slot" + (dragOver ? " is-drag" : "") + (readOnly ? " is-readonly" : "") + (className ? " " + className : "")}
+      style={{ ...style, borderRadius: radiusCss != null ? radiusCss : style.borderRadius, cursor: readOnly ? "default" : undefined }}
+      onClick={readOnly ? undefined : () => inputRef.current && inputRef.current.click()}
+      onDragOver={readOnly ? undefined : (e) => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={readOnly ? undefined : () => setDragOver(false)}
+      onDrop={readOnly ? undefined : (e) => {
         e.preventDefault(); setDragOver(false);
         const f = e.dataTransfer.files && e.dataTransfer.files[0];
         if (f) upload(f);
       }}
     >
-      <input
-        ref={inputRef} type="file" accept={ACCEPT.join(",")} style={{ display: "none" }}
-        onChange={(e) => { const f = e.target.files && e.target.files[0]; if (f) upload(f); e.target.value = ""; }}
-      />
+      {!readOnly && (
+        <input
+          ref={inputRef} type="file" accept={ACCEPT.join(",")} style={{ display: "none" }}
+          onChange={(e) => { const f = e.target.files && e.target.files[0]; if (f) upload(f); e.target.value = ""; }}
+        />
+      )}
       {hasPhoto ? (
         <img src={`/api/photo/${id}?v=${version}`} alt="" className="photo-slot-img"
           style={{ objectFit: fit }} onError={() => setHasPhoto(false)} />
       ) : (
         <div className="photo-slot-empty">
-          <span>{busy ? "Bezig met uploaden…" : placeholder}</span>
-          {error && <span className="photo-slot-error">{error}</span>}
+          <span>{readOnly ? "Nog geen bewijsfoto 📸" : (busy ? "Bezig met uploaden…" : placeholder)}</span>
+          {!readOnly && error && <span className="photo-slot-error">{error}</span>}
         </div>
       )}
     </div>
